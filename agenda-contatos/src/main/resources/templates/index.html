@@ -119,6 +119,14 @@
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
+
+        /* =============================== Imagem Preview =================================== */
+        #previewImagem {
+            display: none;
+            max-width: 100%;
+            margin: 0 auto 15px auto;
+            border-radius: 5px;
+        }
     </style>
 </head>
 
@@ -127,8 +135,7 @@
     <div class="barraEsquerda">
         <h2>Menu</h2>
         <h4>Contatos</h4>
-        <h4>Tarefas</h4>
-        <h4>Sobre o projeto</h4>
+        <h4><a href="sobre.html" style="color: white; text-decoration: none;">Sobre o projeto</a></h4>
     </div>
 
     <!-- Conteúdo Principal -->
@@ -137,40 +144,102 @@
             <input type="text" class="form-control" placeholder="Pesquisar Contatos...">
         </div>
 
-        <div class="listaContatos">
-            <div class="contatos">Daniel - (61) 99999-9999</div>
-            <div class="contatos">Lucas - (61) 99999-9999</div>
-        </div>
+        <!-- Lista de contatos carregada pelo JavaScript -->
+        <div class="listaContatos" id="listaContatos"></div>
     </div>
 
     <!-- Botão de Adicionar Contato -->
-    <button class="botaoAdicionar" onclick="adicionarContato()">+</button>
+    <button class="botaoAdicionar" onclick="abrirFormulario()">+</button>
 
     <!-- Modal de Adicionar Contato -->
     <div class="adicionarContato" id="adicionarContato">
         <div class="conteudoAdicionarContato">
             <span class="botaoFechar" onclick="fecharFormulario()">&times;</span>
             <h3>Adicionar Contato</h3>
+            <img id="previewImagem" src="" alt="Prévia da imagem">
             <input type="file" id="imagemContato" accept="image/*">
-            <input type="text" placeholder="Nome">
-            <input type="tel" placeholder="Telefone">
-            <input type="email" placeholder="Email">
-            <button class="addBotao">Salvar</button>
+            <input type="text" id="nome" placeholder="Nome">
+            <input type="tel" id="telefone" placeholder="Telefone">
+            <input type="email" id="email" placeholder="Email">
+            <button class="addBotao" onclick="salvarContato()">Salvar</button>
         </div>
     </div>
 
     <!-- Script -->
     <script>
-        function adicionarContato() {
+        const url = "http://localhost:8080/contatos";
+
+        function abrirFormulario() {
             document.getElementById("adicionarContato").style.display = "flex";
         }
 
         function fecharFormulario() {
             document.getElementById("adicionarContato").style.display = "none";
+            document.getElementById("previewImagem").style.display = "none";
+            document.getElementById("previewImagem").src = "";
+            document.getElementById("imagemContato").value = "";
         }
 
+        function carregarContatos() {
+            fetch(url)
+                .then(response => response.json())
+                .then(contatos => {
+                    const lista = document.getElementById("listaContatos");
+                    lista.innerHTML = "";
+                    contatos.forEach(contato => {
+                        const div = document.createElement("div");
+                        div.className = "contatos";
+                        div.textContent = `${contato.nome} - ${contato.telefone} - ${contato.email}`;
+                        lista.appendChild(div);
+                    });
+                })
+                .catch(error => console.error("Erro ao carregar contatos:", error));
+        }
 
+        function salvarContato() {
+            const nome = document.getElementById("nome").value;
+            const telefone = document.getElementById("telefone").value;
+            const email = document.getElementById("email").value;
 
+            const novoContato = { nome, telefone, email };
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(novoContato)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        fecharFormulario();
+                        carregarContatos();
+                    } else {
+                        alert("Erro ao salvar contato");
+                    }
+                });
+        }
+
+        // Preview da imagem
+        document.getElementById("imagemContato").addEventListener("change", function(event) {
+            const preview = document.getElementById("previewImagem");
+            const arquivo = event.target.files[0];
+
+            if (arquivo) {
+                const leitor = new FileReader();
+                leitor.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                leitor.readAsDataURL(arquivo);
+            } else {
+                preview.src = "";
+                preview.style.display = "none";
+            }
+        });
+
+        // Carregar contatos ao iniciar
+        window.onload = carregarContatos;
     </script>
 </body>
 </html>
