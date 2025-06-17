@@ -139,10 +139,10 @@
     <div class="conteudoAdicionarContato">
       <span class="botaoFechar" onclick="fecharFormulario()">×</span>
       <h3 id="tituloModal">Adicionar Contato</h3>
-      <input type="text" id="nome" placeholder="Nome" />
-      <input type="tel" id="telefone" placeholder="Telefone" />
-      <input type="email" id="email" placeholder="Email" />
-      <button class="addBotao" onclick="salvarContato()">Salvar</button>
+        <input type="text" id="nome" placeholder="Nome" required>
+        <input type="tel" id="telefone" placeholder="Telefone" required pattern="\d{4,}">
+        <input type="email" id="email" placeholder="Email" required>
+      <button class="addBotao" id="salvarBotao" onclick="salvarContato()">Salvar</button>
     </div>
   </div>
 <!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
@@ -152,10 +152,20 @@
   <script>
     const url = "http://localhost:8080/contatos";
     let todosContatos = [];
+    let modoEdicao = false;
+    let idEdicao = null
 
     function abrirFormulario() {
+      modoEdicao = false;
+      idEdicao = null;
       document.getElementById("adicionarContato").style.display = "flex";
-    }
+      document.getElementById("tituloModal").textContent = "Adicionar Contato";
+      document.getElementById("nome").value = "";
+      document.getElementById("telefone").value = "";
+      document.getElementById("email").value = "";
+      // Redefinir o evento para POST (adição)
+      document.getElementById("salvarBotao").onclick = salvarContato;
+    } 
 
     function fecharFormulario() {
       document.getElementById("adicionarContato").style.display = "none";
@@ -206,68 +216,73 @@
     //Filtro de pesquisa
 
     function salvarContato() {
-      const nome = document.getElementById("nome").value;
-      const telefone = document.getElementById("telefone").value;
-      const email = document.getElementById("email").value;
-      const novoContato = { nome, telefone, email };
+    const nome = document.getElementById("nome").value.trim();
+    const telefone = document.getElementById("telefone").value.trim();
+    const email = document.getElementById("email").value.trim();
 
-      fetch(url, {
+    // Validação básica
+    if (!nome) {
+        alert("O nome é obrigatório!");
+        return;
+    }
+    if (!telefone || !/^\d{9,}$/.test(telefone)) {
+        alert("O telefone deve conter pelo menos 9 dígitos!");
+        return;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert("Digite um email válido!");
+        return;
+    }
+
+    const novoContato = { nome, telefone, email };
+    fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(novoContato),
-      })
-        .then((response) => {
-          if (response.ok) {
+        body: JSON.stringify(novoContato)
+    })
+    .then(response => {
+        if (response.ok) {
             fecharFormulario();
             carregarContatos();
-          } else {
-            alert("Erro ao salvar contato");
-          }
-        })
-        .catch((error) => console.error("Erro ao salvar contato:", error));
-    }
+        } else {
+            alert("Erro ao salvar contato: " + response.statusText);
+        }
+    })
+    .catch(error => console.error("Erro:", error));
+}
 
-    function editarContato(id) {
-      fetch(`${url}/${id}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((contato) => {
-          abrirFormulario();
-          document.getElementById("nome").value = contato.nome;
-          document.getElementById("telefone").value = contato.telefone;
-          document.getElementById("email").value = contato.email;
-          document.getElementById("tituloModal").textContent = "Editar Contato";
-
-          document.querySelector(".addBotao").onclick = function () {
-            const atualizadoContato = {
-              id,
-              nome: document.getElementById("nome").value,
-              telefone: document.getElementById("telefone").value,
-              email: document.getElementById("email").value,
+function editarContato(id) {
+    modoEdicao = true;
+    idEdicao = id;
+    fetch(`${url}/${id}`)
+        .then(response => response.json())
+        .then(contato => {
+            document.getElementById("adicionarContato").style.display = "flex";
+            document.getElementById("nome").value = contato.nome;
+            document.getElementById("telefone").value = contato.telefone;
+            document.getElementById("email").value = contato.email;
+            document.getElementById("tituloModal").textContent = "Editar Contato";
+            // Redefinir o evento para PUT (edição)
+            document.getElementById("salvarBotao").onclick = function() {
+                const atualizadoContato = { id: idEdicao, nome: document.getElementById("nome").value, telefone: document.getElementById("telefone").value, email: document.getElementById("email").value };
+                fetch(`${url}/${idEdicao}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(atualizadoContato)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        fecharFormulario();
+                        carregarContatos();
+                    } else {
+                        alert("Erro ao atualizar contato");
+                    }
+                })
+                .catch(error => console.error("Erro:", error));
             };
-
-            fetch(`${url}/${id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(atualizadoContato),
-            })
-              .then((response) => {
-                if (response.ok) {
-                  fecharFormulario();
-                  carregarContatos();
-                } else {
-                  alert("Erro ao atualizar contato");
-                }
-              })
-              .catch((error) => console.error("Erro ao atualizar contato:", error));
-          };
         })
-        .catch((error) => console.error("Erro ao carregar contato:", error));
-    }
+        .catch(error => console.error("Erro ao carregar contato:", error));
+}
 
     function excluirContato(id) {
       if (confirm("Tem certeza que deseja excluir?")) {

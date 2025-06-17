@@ -1,9 +1,12 @@
 package com.agenda.agenda_contatos.model;
 
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 @Entity
 public class Usuario {
@@ -11,10 +14,16 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "O nome é obrigatório")
     private String nome;
-    private String email;
+
+    @NotBlank(message = "O telefone é obrigatório")
+    @Pattern(regexp = "\\d{9,}", message = "O telefone deve conter pelo menos 9 dígitos")
     private String telefone;
 
+    @NotBlank(message = "O email é obrigatório")
+    @Pattern(regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", message = "Digite um email válido")
+    private String email;
     public Usuario() {}
 
     public Usuario(String nome, String email, String telefone) {
