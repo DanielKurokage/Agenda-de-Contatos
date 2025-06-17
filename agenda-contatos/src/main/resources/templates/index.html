@@ -9,6 +9,8 @@
     integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
     crossorigin="anonymous"
   />
+
+
   <style>
     .barraEsquerda {
       position: fixed;
@@ -105,7 +107,12 @@
     }
   </style>
 </head>
+
+
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
+
 <body>
+  <!-- BARRA LATERAL -->
   <div class="barraEsquerda">
     <h2>Menu</h2>
     <h4>Contatos</h4>
@@ -114,15 +121,20 @@
     </h4>
   </div>
 
+  <!--CONTEÚDO CENTRAL-->
   <div class="conteudo">
     <div class="barraPesquisa">
-      <input type="text" class="form-control" placeholder="Pesquisar Contatos..." />
+      <input type="text" id="inputPesquisa" class="form-control" placeholder="Pesquisar por nome..." oninput="filtrarPorNome()" /> <!--Essas pesquisa esta sendo tratada direto no JS -->
     </div>
+
+    <!-- LISTA DE CONTATOS -->
     <div class="listaContatos" id="listaContatos"></div>
   </div>
 
+  <!-- BOTÃO DE ADICIONAR CONTATO -->
   <button class="botaoAdicionar" onclick="abrirFormulario()">+</button>
 
+  <!-- FORMULÁRIO DE ADICIONAR/EDITAR CONTATO -->
   <div class="adicionarContato" id="adicionarContato">
     <div class="conteudoAdicionarContato">
       <span class="botaoFechar" onclick="fecharFormulario()">×</span>
@@ -133,9 +145,13 @@
       <button class="addBotao" onclick="salvarContato()">Salvar</button>
     </div>
   </div>
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
 
+
+<!--++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
   <script>
     const url = "http://localhost:8080/contatos";
+    let todosContatos = [];
 
     function abrirFormulario() {
       document.getElementById("adicionarContato").style.display = "flex";
@@ -158,21 +174,36 @@
           return response.json();
         })
         .then((contatos) => {
-          const lista = document.getElementById("listaContatos");
-          lista.innerHTML = "";
-          contatos.forEach((contato) => {
-            const div = document.createElement("div");
-            div.className = "contatos";
-            div.innerHTML = `
-              ${contato.nome} - ${contato.telefone} - ${contato.email}
-              <button onclick="editarContato(${contato.id})">Editar</button>
-              <button onclick="excluirContato(${contato.id})">Excluir</button>
-            `;
-            lista.appendChild(div);
-          });
+          todosContatos = contatos;
+          exibirContatos(contatos);
         })
         .catch((error) => console.error("Erro ao carregar contatos:", error));
     }
+
+    function exibirContatos(contatos) {
+      const lista = document.getElementById("listaContatos");
+      lista.innerHTML = "";
+      contatos.forEach((contato) => {
+        const div = document.createElement("div");
+        div.className = "contatos";
+        div.innerHTML = `
+          ${contato.nome} - ${contato.telefone} - ${contato.email}
+          <button onclick="editarContato(${contato.id})">Editar</button>
+          <button onclick="excluirContato(${contato.id})">Excluir</button>
+        `;
+        lista.appendChild(div);
+      });
+    }
+
+    //Filtro de pesquisa 
+    function filtrarPorNome() {
+      const termo = document.getElementById("inputPesquisa").value.toLowerCase();  //Importante na Explicação comando "toLowerCase"
+      const filtrados = todosContatos.filter((contato) =>
+        contato.nome.toLowerCase().includes(termo)
+      );
+      exibirContatos(filtrados);
+    }
+    //Filtro de pesquisa
 
     function salvarContato() {
       const nome = document.getElementById("nome").value;
