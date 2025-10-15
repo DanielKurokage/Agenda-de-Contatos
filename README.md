@@ -42,3 +42,35 @@ O projeto foi desenvolvido com o objetivo de aplicar boas práticas e explorar f
 - Banco de Dados: H2 Database (banco em memória, ideal para desenvolvimento e testes)
 
 - Gerenciador de Dependências: Maven
+
+<br>
+
+<h1>Como Executar o Projeto</h1>
+Para testar o software imediatamente, siga esses passo:
+<br>
+<h3>Execução Direta (via IDE):</h3>
+
+- Baixe ou clone este repositório.
+
+- Abra o projeto em sua IDE (IntelliJ, Eclipse, etc.).
+
+- Localize a classe principal (ServletInitializer.java) e clique em Run (Executar).
+<h3>Acesso a Aplicação</h3>
+Com o servidor iniciado na porta padrão 8080, abra seu navegador e digite: http://localhost:8080
+<br>
+O banco de dados H2 será inicializado automaticamente com o Spring Boot.
+<br>
+
+<h1>Autor</h1>
+<h3>Daniel Carvalho</h3>
+
+- Github: https://github.com/DanielKurokage
+- LinkdIn: https://www.linkedin.com/in/danielcarvalhodev36
+
+<h3>Lucas Marques</h3>
+
+- Github:  https://github.com/Loghzin
+- LinkdIn: https://www.linkedin.com/in/lucas-marques-b0aba1298
+  
+
+
